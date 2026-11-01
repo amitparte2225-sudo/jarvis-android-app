@@ -70,39 +70,60 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: _messages.length,
-            itemBuilder: (context, index) {
-              final message = _messages[index];
-              final isUser = message['role'] == 'user';
-
-              return Align(
-                alignment: isUser
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  padding: const EdgeInsets.all(12),
-                  constraints: const BoxConstraints(maxWidth: 300),
-                  decoration: BoxDecoration(
-                    color: isUser
-                        ? Colors.blue.shade100
-                        : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(message['text'] ?? ''),
-                ),
-              );
-            },
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Ask JARVIS',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+
+        Expanded(
+          child: _messages.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Hello! I am JARVIS.\nHow can I help you today?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 17),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    final isUser = message['role'] == 'user';
+
+                    return Align(
+                      alignment: isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.all(12),
+                        constraints: const BoxConstraints(maxWidth: 300),
+                        decoration: BoxDecoration(
+                          color: isUser
+                              ? Colors.blue.shade100
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(message['text'] ?? ''),
+                      ),
+                    );
+                  },
+                ),
+        ),
+
         if (_isLoading)
           const Padding(
             padding: EdgeInsets.all(8),
             child: CircularProgressIndicator(),
           ),
+
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(10),
