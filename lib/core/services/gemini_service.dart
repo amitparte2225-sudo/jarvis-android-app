@@ -1,4 +1,3 @@
-```dart
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
@@ -24,9 +23,6 @@ class GeminiService {
           )
           .timeout(const Duration(seconds: 90));
 
-      print('JARVIS STATUS: ${response.statusCode}');
-      print('JARVIS RESPONSE: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
@@ -51,4 +47,3 @@ class GeminiService {
     }
   }
 }
-```
