@@ -1,44 +1,102 @@
+```yaml
 name: Build JARVIS Android app
 
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Check all project files are present
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check all project files
         run: |
           missing=0
-          for f in pubspec.yaml lib/main.dart lib/app.dart lib/core/theme.dart lib/core/auth/auth_controller.dart lib/core/auth/pin_service.dart lib/core/auth/secure_store.dart lib/features/auth/pin_field.dart lib/features/auth/setup_pin_screen.dart lib/features/auth/unlock_screen.dart lib/features/home/home_shell.dart lib/features/home/planned_feature_page.dart test/memory_store.dart test/pin_service_test.dart test/app_flow_test.dart; do
-            if [ ! -f "$f" ]; then echo "MISSING FILE: $f"; missing=1; fi
+
+          for f in \
+            pubspec.yaml \
+            lib/main.dart \
+            lib/app.dart \
+            lib/core/theme.dart \
+            lib/core/auth/auth_controller.dart \
+            lib/core/auth/pin_service.dart \
+            lib/core/auth/secure_store.dart \
+            lib/core/services/gemini_service.dart \
+            lib/features/auth/pin_field.dart \
+            lib/features/auth/setup_pin_screen.dart \
+            lib/features/auth/unlock_screen.dart \
+            lib/features/home/home_shell.dart \
+            lib/features/home/planned_feature_page.dart \
+            lib/features/chat/chat_screen.dart \
+            test/memory_store.dart \
+            test/pin_service_test.dart \
+            test/app_flow_test.dart
+          do
+            if [ ! -f "$f" ]; then
+              echo "MISSING FILE: $f"
+              missing=1
+            fi
           done
-          if [ "$missing" = "1" ]; then echo "Upload the missing files, then run again."; exit 1; fi
+
+          if [ "$missing" = "1" ]; then
+            echo "Required files are missing."
+            exit 1
+          fi
+
           echo "All project files found."
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      # Creates the Android part of the project (we only keep our own code in Git).
       - name: Create Android scaffold
         run: |
-          flutter create --platforms=android --project-name jarvis_app --org com.amit.jarvis .
+          flutter create \
+            --platforms=android \
+            --project-name jarvis_app \
+            --org com.amit.jarvis .
+
           rm -f test/widget_test.dart
 
-      - run: flutter pub get
-      - run: flutter analyze --no-fatal-infos
-      - run: flutter test
-      - run: flutter build apk --release
+      - name: Verify Android Internet permission
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-      - uses: actions/upload-artifact@v4
+          if ! grep -q 'android.permission.INTERNET' "$MANIFEST"; then
+            sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST"
+          fi
+
+          echo "Checking Internet permission:"
+          grep 'android.permission.INTERNET' "$MANIFEST"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: jarvis-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+```
