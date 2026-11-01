@@ -5,6 +5,9 @@ import 'package:jarvis_app/app.dart';
 import 'package:jarvis_app/core/auth/auth_controller.dart';
 import 'package:jarvis_app/core/auth/pin_service.dart';
 
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import 'memory_store.dart';
 
 Future<void> settle(WidgetTester tester) async {
@@ -16,6 +19,13 @@ Future<void> settle(WidgetTester tester) async {
 }
 
 void main() {
+
+  // SQLite initialization for Flutter tests
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   testWidgets('fresh install asks to create a PIN',
       (tester) async {
     final auth = AuthController(
