@@ -20,7 +20,7 @@ def home():
 @app.post("/chat")
 def chat(request: ChatRequest):
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+         model="gemini-3.8-flash",
         contents=request.message
     )
     return {"reply": response.text}
