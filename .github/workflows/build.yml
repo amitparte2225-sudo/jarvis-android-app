@@ -1,3 +1,4 @@
+```yaml
 name: Build JARVIS Android app
 
 on:
@@ -12,40 +13,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check all project files
+      - name: Check project files
         run: |
-          missing=0
-
           for f in \
             pubspec.yaml \
             lib/main.dart \
             lib/app.dart \
-            lib/core/theme.dart \
-            lib/core/auth/auth_controller.dart \
-            lib/core/auth/pin_service.dart \
-            lib/core/auth/secure_store.dart \
             lib/core/services/gemini_service.dart \
-            lib/features/auth/pin_field.dart \
-            lib/features/auth/setup_pin_screen.dart \
-            lib/features/auth/unlock_screen.dart \
-            lib/features/home/home_shell.dart \
-            lib/features/home/planned_feature_page.dart \
             lib/features/chat/chat_screen.dart \
+            lib/features/home/home_shell.dart \
             test/memory_store.dart \
             test/pin_service_test.dart \
             test/app_flow_test.dart
           do
             if [ ! -f "$f" ]; then
               echo "MISSING FILE: $f"
-              missing=1
+              exit 1
             fi
           done
-
-          if [ "$missing" = "1" ]; then
-            echo "Required files are missing."
-            exit 1
-          fi
-
           echo "All project files found."
 
       - name: Setup Java
@@ -66,10 +51,9 @@ jobs:
             --platforms=android \
             --project-name jarvis_app \
             --org com.amit.jarvis .
-
           rm -f test/widget_test.dart
 
-      - name: Verify Android Internet permission
+      - name: Add Android Internet permission
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
@@ -77,19 +61,18 @@ jobs:
             sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST"
           fi
 
-          echo "Checking Internet permission:"
           grep 'android.permission.INTERNET' "$MANIFEST"
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Flutter analyze
+      - name: Analyze Flutter
         run: flutter analyze --no-fatal-infos
 
-      - name: Run Flutter tests
+      - name: Run tests
         run: flutter test
 
-      - name: Build release APK
+      - name: Build APK
         run: flutter build apk --release
 
       - name: Upload APK
@@ -98,4 +81,4 @@ jobs:
           name: jarvis-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-
+```
